@@ -41,37 +41,6 @@ func (t *trueBackpack) has(i item) bool {
 	return false
 }
 
-type Player struct {
-	backpack
-	room *Room
-}
-
-func (p *Player) takeOn(b backpack) {
-	p.backpack = b
-}
-
-func (p *Player) get(i item) error {
-	if p.room.has(i) {
-		err := p.backpack.get(i)
-		if err == nil {
-			p.room.remove(i)
-		}
-		return err
-	}
-	return errors.New("нет такого")
-}
-
-func (p *Player) goTo(room string) error {
-	if p.room.isAvailable(room) {
-		if p.room.canGo(room) {
-			_, p.room = p.room.getNextRoomByName(room)
-			return nil
-		}
-		return errors.New("дверь закрыта")
-	}
-	return errors.New("нет пути в " + room)
-}
-
 const (
 	noBackpack = iota
 	hasBackpack
@@ -84,7 +53,7 @@ var (
 	hall Room
 	room Room
 	outside Room
-	player Player
+	players []*Player
 	state int
 )
 
@@ -92,17 +61,17 @@ func initGame() {
 	state = noBackpack
 	initCommands()
 	initRooms()
-	player = Player{&nullBackpack{}, &kitchen}
 }
 
 func main() {
 	initGame()
+	addPlayer(NewPlayer("player1"))
 	reader := bufio.NewReader(os.Stdin)
 	command := ""
 
 	for {
 		command, _ = reader.ReadString('\n')
-		fmt.Println(handleCommand(strings.TrimSpace(command)))
+		fmt.Println(handleCommand(strings.TrimSpace(command), players[0]))
 	}
 
 }

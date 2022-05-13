@@ -24,7 +24,7 @@ var lookAroundCommand Command = func(p *Player, params ...string) (string, error
 		return "", errors.New("неверное кол-во параметров, команда не требует параметров")
 	}
 
-	return player.room.desc(state), nil
+	return p.room.desc(state, p), nil
 }
 
 var takeCommand Command = func(p *Player, params ...string) (string, error) {
@@ -52,7 +52,7 @@ var takeOnCommand Command = func(p *Player, params ...string) (string, error) {
 
 	if state == noBackpack && p.room == &room && requestedItem == "рюкзак" {
 		state = hasBackpack
-		player.takeOn(&trueBackpack{})
+		p.takeOn(&trueBackpack{})
 		return "вы одели: рюкзак", nil
 	}
 
@@ -90,12 +90,12 @@ func initCommands() {
 	commands["одеть"] = takeOnCommand
 }
 
-func handleCommand(c string) string {
+func handleCommand(c string, player *Player) string {
 	params := strings.Split(c, " ")
 	command := params[0]
 	params = params[1:]
 	if f, ok := commands[command]; ok {
-		res, err := f(&player, params...)
+		res, err := f(player, params...)
 		if err != nil {
 			return err.Error()
 		}
