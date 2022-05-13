@@ -22,8 +22,11 @@ func (p *Player) GetOutput() chan string {
 	return p.output
 }
 
-func (p *Player) HandleInput(msg string) {
-	p.output <- handleCommand(msg, p)
+func (p *Player) HandleInput(command string) {
+	msg := handleCommand(command, p)
+	if msg != "" {
+		p.output <- msg
+	}
 }
 
 func (p *Player) HandleOutput(msg string) {

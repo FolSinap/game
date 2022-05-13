@@ -94,6 +94,34 @@ var sayCommand Command = func(p *Player, params ...string) (string, error) {
 	return msg, nil
 }
 
+var sayToPlayerCommand Command = func(p *Player, params ...string) (string, error) {
+	targetPlayerName := params[0]
+	params = params[1:]
+	msg := ""
+
+	if len(params) > 1 {
+		msg = p.name + " говорит вам: "
+		for _, word := range params {
+			msg += word + " "
+		}
+		msg = strings.TrimRight(msg, " ")
+	} else {
+		msg = p.name + " выразительно молчит, смотря на вас"
+	}
+	targetPlayerExists := false
+
+	for _, player := range p.room.players {
+		if player.name == targetPlayerName {
+			targetPlayerExists = true
+			player.HandleOutput(msg)
+		}
+	}
+	if !targetPlayerExists {
+		return "тут нет такого игрока", nil
+	}
+	return "", nil
+}
+
 var commands = make(map[string]Command)
 
 func initCommands() {
@@ -103,7 +131,7 @@ func initCommands() {
 	commands["применить"] = useCommand
 	commands["одеть"] = takeOnCommand
 	commands["сказать"] = sayCommand
-	//commands["сказать_игроку"] = sayToPlayerCommand
+	commands["сказать_игроку"] = sayToPlayerCommand
 }
 
 func handleCommand(c string, player *Player) string {
