@@ -26,6 +26,10 @@ func (p *Player) HandleInput(msg string) {
 	p.output <- handleCommand(msg, p)
 }
 
+func (p *Player) HandleOutput(msg string) {
+	p.output <- msg
+}
+
 func (p *Player) takeOn(b backpack) {
 	p.backpack = b
 }

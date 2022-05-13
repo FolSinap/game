@@ -80,6 +80,20 @@ var useCommand Command = func(p *Player, params ...string) (string, error) {
 	return "", errors.New("не к чему применить")
 }
 
+var sayCommand Command = func(p *Player, params ...string) (string, error) {
+	msg := p.name + " говорит: "
+	for _, word := range params {
+		msg += word + " "
+	}
+	msg = strings.TrimRight(msg, " ")
+	for _, player := range p.room.players {
+		if player != p {
+			player.HandleOutput(msg)
+		}
+	}
+	return msg, nil
+}
+
 var commands = make(map[string]Command)
 
 func initCommands() {
@@ -88,6 +102,8 @@ func initCommands() {
 	commands["взять"] = takeCommand
 	commands["применить"] = useCommand
 	commands["одеть"] = takeOnCommand
+	commands["сказать"] = sayCommand
+	//commands["сказать_игроку"] = sayToPlayerCommand
 }
 
 func handleCommand(c string, player *Player) string {
