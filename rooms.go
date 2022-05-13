@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-type description func (state int) string
+type description func (state int, p *Player) string
 
 type direction struct {
 	name string
@@ -18,6 +18,37 @@ type Room struct {
 	desc description
 	nextRooms []*direction
 	items []item
+	players []*Player
+}
+
+func (r *Room) addPlayer(p *Player) {
+	r.players = append(r.players, p)
+}
+
+func (r *Room) removePlayer(p *Player) {
+	for i, player := range r.players {
+		if player == p {
+			r.players = append(r.players[:i], r.players[i + 1:]...)
+		}
+	}
+}
+
+func (r *Room) msgPostfix(p *Player) string {
+	return r.showDirections() + r.showPlayers(p)
+}
+
+func (r *Room) showPlayers(except *Player) string {
+	msg := ""
+	if len(r.players) > 1 {
+		msg = ". Кроме вас тут ещё "
+		for _, player := range r.players {
+			if player != except {
+				msg += player.name + ", "
+			}
+		}
+		msg = strings.TrimRight(msg, ", ")
+	}
+	return msg
 }
 
 func (r *Room) greet() string {
@@ -87,17 +118,17 @@ func (r *Room) getNextRoomByName(name string) (error, *Room) {
 }
 
 func initRooms() {
-	var kitchenDesc description = func(state int) string {
+	var kitchenDesc description = func(state int, p *Player) string {
 		if state < hasStuff {
-			return "ты находишься на кухне, на столе чай, надо собрать рюкзак и идти в универ. " + kitchen.showDirections()
+			return "ты находишься на кухне, на столе чай, надо собрать рюкзак и идти в универ. " + kitchen.msgPostfix(p)
 		}
-		return "ты находишься на кухне, на столе чай, надо идти в универ. " + kitchen.showDirections()
+		return "ты находишься на кухне, на столе чай, надо идти в универ. " + kitchen.msgPostfix(p)
 	}
-	var hallDesc description = func(int) string {
-		return "ничего интересного." + hall.showDirections()
+	var hallDesc description = func(i int, p *Player) string {
+		return "ничего интересного." + hall.msgPostfix(p)
 	}
-	var roomDesc description = func(int) string {
-		directions := room.showDirections()
+	var roomDesc description = func(i int, p *Player) string {
+		directions := room.msgPostfix(p)
 		switch state {
 		case noBackpack:
 
@@ -112,8 +143,8 @@ func initRooms() {
 			return "пустая комната. "  + directions
 		}
 	}
-	var outsideDesc description = func(int) string {
-		return "на улице весна. " + outside.showDirections()
+	var outsideDesc description = func(i int, p *Player) string {
+		return "на улице весна. " + outside.msgPostfix(p)
 	}
 
 	kitchen = Room{
@@ -121,6 +152,7 @@ func initRooms() {
 		kitchenDesc,
 		[]*direction{{"коридор", false, &hall}},
 		[]item{},
+		[]*Player{},
 	}
 	hall = Room{
 		"ничего интересного.",
@@ -131,17 +163,20 @@ func initRooms() {
 			{"улица", true, &outside},
 		},
 		[]item{},
+		[]*Player{},
 	}
 	room = Room{
 		"ты в своей комнате.",
 		roomDesc,
 		[]*direction{{"коридор", false, &hall}},
 		[]item{"ключи", "конспекты"},
+		[]*Player{},
 	}
 	outside = Room{
 		"на улице весна.",
 		outsideDesc,
 		[]*direction{{"домой", false, &hall}},
 		[]item{},
+		[]*Player{},
 	}
 }
