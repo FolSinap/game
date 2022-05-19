@@ -3,11 +3,19 @@ package main
 import "errors"
 
 func NewPlayer(name string) *Player {
-	return &Player{&nullBackpack{}, name, &kitchen, make(chan string)}
+	return &Player{
+		backpack: &nullBackpack{},
+		name: name,
+		room: &kitchen,
+		output: make(chan string)}
 }
 
 func addPlayer(player *Player) {
 	kitchen.addPlayer(player)
+	player.room = &kitchen
+	if len(players) == 0 {
+		player.isAdmin = true
+	}
 	players[player.name] = player
 }
 
@@ -29,10 +37,12 @@ func removePlayer(p *Player) {
 		state = noBackpack
 	}
 	p.room.removePlayer(p)
+	p.room = nil
 }
 
 type Player struct {
 	backpack
+	isAdmin bool
 	name string
 	room *Room
 	output chan string

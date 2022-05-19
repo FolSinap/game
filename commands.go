@@ -122,6 +122,27 @@ var sayToPlayerCommand Command = func(p *Player, params ...string) (string, erro
 	return "", nil
 }
 
+var reset Command = func(p *Player, params ...string) (string, error) {
+	if p.isAdmin {
+		for _, player := range players {
+			if p != player {
+				player.HandleOutput("Вы удалены из игры. Причина - админ сбросил игру")
+			}
+			removePlayer(player)
+		}
+		addPlayer(p)
+		state = noBackpack
+		p.backpack = &nullBackpack{}
+		for _, direction := range hall.nextRooms {
+			if direction.name == "улица" {
+				direction.isLocked = true
+			}
+		}
+		return "Игра сброшена", nil
+	}
+	return "", errors.New("команда доступна только админу игры")
+}
+
 var commands = make(map[string]Command)
 
 func initCommands() {
@@ -132,6 +153,7 @@ func initCommands() {
 	commands["одеть"] = takeOnCommand
 	commands["сказать"] = sayCommand
 	commands["сказать_игроку"] = sayToPlayerCommand
+	commands["сброс"] = reset
 }
 
 func handleCommand(c string, player *Player) string {
