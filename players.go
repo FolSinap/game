@@ -3,16 +3,46 @@ package main
 import "errors"
 
 func NewPlayer(name string) *Player {
-	return &Player{&nullBackpack{}, name, &kitchen, make(chan string)}
+	return &Player{
+		backpack: &nullBackpack{},
+		name: name,
+		room: &kitchen,
+		output: make(chan string)}
 }
 
 func addPlayer(player *Player) {
 	kitchen.addPlayer(player)
-	players = append(players, player)
+	player.room = &kitchen
+	if len(players) == 0 {
+		player.isAdmin = true
+	}
+	players[player.name] = player
+}
+
+func findPlayer(name string) *Player {
+	if player, ok := players[name]; ok {
+		return player
+	}
+	return nil
+}
+
+func removePlayer(p *Player) {
+	delete(players, p.name)
+	switch p.backpack.(type) {
+	case *trueBackpack:
+		backpack := p.backpack.(*trueBackpack)
+		for _, item := range *backpack {
+			item.returnToRoom()
+		}
+		state = noBackpack
+	}
+	p.room.removePlayer(p)
+	p.room = nil
 }
 
 type Player struct {
 	backpack
+	isAdmin bool
 	name string
 	room *Room
 	output chan string
@@ -23,10 +53,7 @@ func (p *Player) GetOutput() chan string {
 }
 
 func (p *Player) HandleInput(command string) {
-	msg := handleCommand(command, p)
-	if msg != "" {
-		p.output <- msg
-	}
+	p.output <- handleCommand(command, p)
 }
 
 func (p *Player) HandleOutput(msg string) {

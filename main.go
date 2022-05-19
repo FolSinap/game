@@ -1,14 +1,18 @@
 package main
 
 import (
-	"bufio"
 	"errors"
 	"fmt"
-	"os"
-	"strings"
 )
 
-type item string
+type item struct {
+	name string
+	from *Room
+}
+
+func (i item) returnToRoom() {
+	i.from.add(i)
+}
 
 type backpack interface {
     get(item) error
@@ -34,7 +38,7 @@ func (t *trueBackpack) get(i item) error {
 
 func (t *trueBackpack) has(i item) bool {
 	for _, item := range *t {
-		if item == i {
+		if item.name == i.name {
 			return true
 		}
 	}
@@ -53,7 +57,7 @@ var (
 	hall Room
 	room Room
 	outside Room
-	players []*Player
+	players  = make(map[string]*Player)
 	state int
 )
 
@@ -61,17 +65,18 @@ func initGame() {
 	state = noBackpack
 	initCommands()
 	initRooms()
+	initBot()
 }
 
 func main() {
 	initGame()
-	addPlayer(NewPlayer("player1"))
-	reader := bufio.NewReader(os.Stdin)
-	command := ""
-
-	for {
-		command, _ = reader.ReadString('\n')
-		fmt.Println(handleCommand(strings.TrimSpace(command), players[0]))
-	}
-
+	//addPlayer(NewPlayer("player1"))
+	//reader := bufio.NewReader(os.Stdin)
+	//command := ""
+	//
+	//for {
+	//	command, _ = reader.ReadString('\n')
+	//	fmt.Println(handleCommand(strings.TrimSpace(command), players["player1"]))
+	//}
+	fmt.Scanln()
 }

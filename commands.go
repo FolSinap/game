@@ -33,7 +33,7 @@ var takeCommand Command = func(p *Player, params ...string) (string, error) {
 	}
 	requestedItem := params[0]
 
-	err := p.get(item(requestedItem))
+	err := p.get(item{requestedItem, p.room})
 	if err != nil {
 		return "", err
 	}
@@ -63,10 +63,10 @@ var useCommand Command = func(p *Player, params ...string) (string, error) {
 	if len(params) != 2 {
 		return "", errors.New("неверное кол-во параметров, требуется - 2")
 	}
-	tool := item(params[0])
+	tool := item{name: params[0]}
 	target := params[1]
 	if !p.has(tool) {
-		return "", errors.New("нет предмета в инвентаре - " + string(tool))
+		return "", errors.New("нет предмета в инвентаре - " + tool.name)
 	}
 
 	if target == "дверь" && p.room == &hall {
@@ -99,7 +99,7 @@ var sayToPlayerCommand Command = func(p *Player, params ...string) (string, erro
 	params = params[1:]
 	msg := ""
 
-	if len(params) > 1 {
+	if len(params) >= 1 {
 		msg = p.name + " говорит вам: "
 		for _, word := range params {
 			msg += word + " "
@@ -122,6 +122,27 @@ var sayToPlayerCommand Command = func(p *Player, params ...string) (string, erro
 	return "", nil
 }
 
+var reset Command = func(p *Player, params ...string) (string, error) {
+	if p.isAdmin {
+		for _, player := range players {
+			if p != player {
+				player.HandleOutput("Вы удалены из игры. Причина - админ сбросил игру")
+			}
+			removePlayer(player)
+		}
+		addPlayer(p)
+		state = noBackpack
+		p.backpack = &nullBackpack{}
+		for _, direction := range hall.nextRooms {
+			if direction.name == "улица" {
+				direction.isLocked = true
+			}
+		}
+		return "Игра сброшена", nil
+	}
+	return "", errors.New("команда доступна только админу игры")
+}
+
 var commands = make(map[string]Command)
 
 func initCommands() {
@@ -132,6 +153,7 @@ func initCommands() {
 	commands["одеть"] = takeOnCommand
 	commands["сказать"] = sayCommand
 	commands["сказать_игроку"] = sayToPlayerCommand
+	commands["сброс"] = reset
 }
 
 func handleCommand(c string, player *Player) string {

@@ -93,16 +93,20 @@ func (r *Room) isEmpty() bool {
 
 func (r *Room) has(i item) bool {
 	for _, item := range r.items {
-		if item == i {
+		if item.name == i.name {
 			return true
 		}
 	}
 	return false
 }
 
+func (r *Room) add(i item) {
+	r.items = append(r.items, i)
+}
+
 func (r *Room) remove(i item) {
-	for index, val := range r.items {
-		if val == i {
+	for index, item := range r.items {
+		if item.name == i.name {
 			r.items = append(r.items[:index], r.items[index + 1:]...)
 		}
 	}
@@ -136,7 +140,7 @@ func initRooms() {
 		case hasBackpack:
 			desc := "на столе: "
 			for _, item := range room.items {
-				desc += string(item) + ", "
+				desc += item.name + ", "
 			}
 			return strings.TrimRight(desc, ", ") + ". " + directions
 		default:
@@ -169,7 +173,7 @@ func initRooms() {
 		"ты в своей комнате.",
 		roomDesc,
 		[]*direction{{"коридор", false, &hall}},
-		[]item{"ключи", "конспекты"},
+		[]item{{"ключи", &room}, {"конспекты", &room}},
 		[]*Player{},
 	}
 	outside = Room{
