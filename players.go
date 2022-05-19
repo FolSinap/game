@@ -8,7 +8,27 @@ func NewPlayer(name string) *Player {
 
 func addPlayer(player *Player) {
 	kitchen.addPlayer(player)
-	players = append(players, player)
+	players[player.name] = player
+}
+
+func findPlayer(name string) *Player {
+	if player, ok := players[name]; ok {
+		return player
+	}
+	return nil
+}
+
+func removePlayer(p *Player) {
+	delete(players, p.name)
+	switch p.backpack.(type) {
+	case *trueBackpack:
+		backpack := p.backpack.(*trueBackpack)
+		for _, item := range *backpack {
+			item.returnToRoom()
+		}
+		state = noBackpack
+	}
+	p.room.removePlayer(p)
 }
 
 type Player struct {
@@ -23,10 +43,7 @@ func (p *Player) GetOutput() chan string {
 }
 
 func (p *Player) HandleInput(command string) {
-	msg := handleCommand(command, p)
-	if msg != "" {
-		p.output <- msg
-	}
+	p.output <- handleCommand(command, p)
 }
 
 func (p *Player) HandleOutput(msg string) {
