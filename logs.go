@@ -45,7 +45,7 @@ func initLogs() (err error) {
 
 func getLogs(n uint) (logs []CommandLog) {
 	var log CommandLog
-	rows, err := db.Query("SELECT * FROM `commands` LIMIT " + strconv.FormatUint(uint64(n), 10) + ";")
+	rows, err := db.Query("SELECT * FROM `commands` ORDER BY `id` DESC LIMIT " + strconv.FormatUint(uint64(n), 10) + ";")
 	panicOnError(err)
 	for rows.Next() {
 		var id int
