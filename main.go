@@ -73,6 +73,7 @@ func initGame() {
 	initRooms()
 	initBot()
 	panicOnError(initLogs())
+	initServer()
 }
 
 func main() {
