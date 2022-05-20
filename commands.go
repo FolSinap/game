@@ -157,16 +157,19 @@ func initCommands() {
 }
 
 func handleCommand(c string, player *Player) string {
+	var result = "неизвестная команда"
 	params := strings.Split(c, " ")
 	command := params[0]
 	params = params[1:]
 	if f, ok := commands[command]; ok {
 		res, err := f(player, params...)
 		if err != nil {
-			return err.Error()
+			result = err.Error()
+		} else {
+			result = res
 		}
-		return res
 	}
+	panicOnError(NewCommandLog(player.name, c, result).log())
 
-	return "неизвестная команда"
+	return result
 }
