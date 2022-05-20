@@ -45,6 +45,12 @@ func (t *trueBackpack) has(i item) bool {
 	return false
 }
 
+func panicOnError(err error) {
+	if err != nil {
+		panic(err)
+	}
+}
+
 const (
 	noBackpack = iota
 	hasBackpack
@@ -66,6 +72,7 @@ func initGame() {
 	initCommands()
 	initRooms()
 	initBot()
+	panicOnError(initLogs())
 }
 
 func main() {
